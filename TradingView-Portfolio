@@ -1,0 +1,83 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// ©n2ly
+//@version=4
+
+study("n4ly's Portfolio Tool", "n4lio")
+
+ghost = security("V", "12M", close) * 0 // Dummy data
+group_start = ghost
+calc = ghost
+view = input("Total", "View type", options = ["Total", "Profit"])
+exchange = input("USD", "Exchange", options = ["USD", "KRW", "JPY", "EUR"]) // You can add more currency here
+stack = view == "Total" ? 1 : 0
+g_color = color.blue
+none = display.none
+
+holding(currency, symbol, quantity, price) => 
+    amount = security(symbol, timeframe.period, close) * quantity
+    ex = security(currency == exchange ? "V" : "FX_IDC:" + currency + exchange, timeframe.period, close)
+    (stack ? amount : amount - (price * quantity)) * (currency == exchange ? 1 : ex) - (stack ? 0 : ghost)
+    
+fillFrom() =>
+    stack ? group_start : 0
+
+fillTo() =>
+    stack ? ghost : calc - group_start
+
+
+// Edit here ↓
+
+// < Group Start > (with comments)
+group_start := stack ? ghost : calc // Just for calculation. You can delete this if don't need a group
+
+// Asset
+ghost := ghost + holding("USD", "HITBTC:MAIDUSD", 17051.9, 0.5) // holding(<Currency>, <Symbol>, <Number of shares>, <Price>)
+plot(ghost, "MaidSafe") // "MaidSafe" is title
+calc := calc + ghost // Just for calculation
+
+// code for Grouping. You can delete this if don't need a group
+g_color := color.orange // You can change color (not recommend purple and blue) 
+fill(plot(fillFrom(), display = none), plot(fillTo(), "[Crypto]", g_color, 2), g_color, stack ? 70 : 100) // "[Crypto]" is group title
+
+// < Group end >
+
+
+// This is not in the group
+ghost := ghost + holding("KRW", "ETHKRW", 11.37321677, 521789)
+plot(ghost, "Ethereum")  
+calc := calc + ghost
+
+
+
+group_start := stack ? ghost : calc
+
+ghost := ghost + holding("USD", "ADBE", 4, 362.095)
+plot(ghost, "Adobe")
+calc := calc + ghost
+
+ghost := ghost + holding("USD", "V", 5, 180.84)
+plot(ghost, "Visa")
+calc := calc + ghost
+
+g_color := color.red
+fill(plot(fillFrom(), display = none), plot(fillTo(), "[USA]", g_color, 2), g_color, stack ? 70 : 100)
+
+
+
+group_start := stack ? ghost : calc
+
+ghost := ghost + holding("KRW", "005930", 5, 48950)
+plot(ghost, "Samsung")
+calc := calc + ghost
+
+ghost := ghost + holding("JPY", "4751", 100, 5000)
+plot(ghost, "CyberAgent")
+calc := calc + ghost
+
+g_color := color.white
+fill(plot(fillFrom(), display = none), plot(fillTo(), "[Other]", g_color, 2), g_color, stack ? 70 : 100)
+
+
+// Edit end
+
+plot(stack ? ghost : calc, "[Total]", color.purple, stack ? 1 : 4)
